@@ -54,3 +54,16 @@ SELECT
 WHERE whn = '2020-04-20' AND population > 10000000
 ORDER BY population DESC
 
+
+SELECT
+  name,DATE_FORMAT(whn,'%Y-%m-%d'), newCases AS peakNewCases
+FROM
+  (SELECT name, whn, newCases, RANK() OVER (PARTITION BY name ORDER BY newCases DESC) rnc
+FROM
+  (SELECT name, whn, confirmed - LAG(confirmed, 1) OVER (PARTITION BY name ORDER BY whn) as newCases
+FROM
+  covid
+) AS x
+) AS y
+WHERE rnc = 1 AND newCases > 1000
+ORDER BY whn
